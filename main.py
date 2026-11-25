@@ -1,6 +1,8 @@
 QUEUE = 3
 #排除顶部的叉号按钮
 ROI_AVOID_TOP = (0, 200, 900, 1600)
+#升级页面分所有建筑(0)，基础建筑(1)，资源建筑的升级(2),通过修改变量select进行选择，默认所有建筑
+select = 1
 import cv2
 from ppadb.client import Client as AdbClient
 import time
@@ -25,6 +27,12 @@ UPGRADE_TEMPLATES = [
 ]
 UPGRADES_TEMPLATES = [
     "./image/upgrades.png",
+]
+BASIC_TEMPLATES = [
+    "./image/BasicBuilding.png",
+]
+RESOURCE_TEMPLATES = [
+    "./image/ResourceBuilding.png",
 ]
 def run(cmd):
     r = subprocess.run(cmd, capture_output=True, text=True)
@@ -142,7 +150,27 @@ while True:
             Count = Count + 1
             continue
         else:
-                print("免费按钮已经全部点击，准备开始处理队列，，，，")
+                print("没有免费按钮或已经全部点击，，，，")
+
+        ##选择页面
+        if select ==1:
+            basicButtons = find_all_buttons(device, BASIC_TEMPLATES)
+            basicCount = len(basicButtons)
+            if basicCount:
+                print("发现基础页面")
+                cx, cy = basicButtons[0]
+                basicButtons.sort(key=lambda p: p[1])
+                print("切换基础页面，，，")
+                device.shell(f"input tap {cx} {cy}")
+        if select ==2:
+            resourceButtons = find_all_buttons(device, RESOURCE_TEMPLATES)
+            resourceCount = len(resourceButtons)
+            if resourceCount:
+                print("发现资源页面")
+                cx, cy = resourceButtons[0]
+                resourceButtons.sort(key=lambda p: p[1])
+                print("切换资源页面，，，")
+                device.shell(f"input tap {cx} {cy}")
 
 
         # ================= 2. 处理升级队列 =================
@@ -150,7 +178,7 @@ while True:
         queueCount = len(queueButtons)
         print(f"当前队列：{queueCount}")
 
-        if queueCount < QUEUE:
+        if queueCount<QUEUE:
             upgradeButtons = find_all_buttons(device, UPGRADE_TEMPLATES)
             print(f"当前升级按钮：{len(upgradeButtons)}")
             if upgradeButtons:
@@ -162,7 +190,7 @@ while True:
                 continue
 
             else:
-                print("⚠️ 队列未满，但没找到升级按钮，等待重试...")
+                print("⚠️ 没找到升级按钮，正在关闭弹窗和寻找升级页面...")
                 time.sleep(2)
                 #可能网络错误弹回主页并出现弹窗，先把弹窗点掉
                 closeButtons = find_all_buttons(device, CLOSE_TEMPLATES)
@@ -179,7 +207,7 @@ while True:
                     print(f"点击坐标{cx}, {cy}")
                     print("进入了升级页面，开始自动升级。。。")
                 else:
-                    print("没有找到升级页面，可能存在弹窗")
+                    print("没有找到升级页面，可能还存在弹窗。。。")
 
 
         else:

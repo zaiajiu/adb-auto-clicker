@@ -1,8 +1,4 @@
-import cv2
 from ppadb.client import Client as AdbClient
-import time
-import numpy as np
-
 print("正在寻找设备...")
 client = AdbClient(host="127.0.0.1", port=5037)
 devices = client.devices()
@@ -20,7 +16,7 @@ print(f"已连接到设备：{device.serial}")
 print("正在截屏，请稍等...")
 screen_bytes = device.screencap()
 
-with open("image/closeButtons3.png", "wb") as f:
+with open("image/fullScreen.png", "wb") as f:
     f.write(screen_bytes)
 
 print("🎉 截屏成功！请去左侧项目栏查看 closeButtons3.png")
