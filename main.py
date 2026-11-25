@@ -12,6 +12,7 @@ import subprocess
 CLOSE_TEMPLATES = [
     "./image/closeButtons.png",
     "./image/closeButtons2.png",
+    "./image/closeButtons3.png",
 ]
 FREE_TEMPLATES = [
     "./image/freeButtons.png",
@@ -21,6 +22,9 @@ QUEUE_TEMPLATES = [
 ]
 UPGRADE_TEMPLATES = [
     "./image/upgradeButtons.png",
+]
+UPGRADES_TEMPLATES = [
+    "./image/upgrades.png",
 ]
 def run(cmd):
     r = subprocess.run(cmd, capture_output=True, text=True)
@@ -32,7 +36,7 @@ time.sleep(2)
 run([r"D:\Daily\MuMu\MuMuPlayer\nx_main\adb.exe", "devices"])
 
 #截图比对模板，返回所有按钮
-def find_all_buttons(device, template_paths, threshold=0.8, roi=ROI_AVOID_TOP):
+def find_all_buttons(device, template_paths, threshold=0.8, roi=None):
     """
         支持同时寻找多张模板图，并支持限定区域。
         template_paths 是一个列表，例如 ["./image/close_1.png", "./image/close_2.png"]
@@ -116,7 +120,7 @@ Count = 0
 while True:
     try:
         # ================= 0. 兜底：优先处理弹窗 =================
-        closeButtons = find_all_buttons(device, CLOSE_TEMPLATES, threshold=0.8)
+        closeButtons = find_all_buttons(device, CLOSE_TEMPLATES, threshold=0.8,roi=ROI_AVOID_TOP)
         if closeButtons:
             # 如果屏幕上有弹窗关闭按钮，优先点它
             closeButtons.sort(key=lambda p: p[1])  # 从上到下
@@ -160,6 +164,24 @@ while True:
             else:
                 print("⚠️ 队列未满，但没找到升级按钮，等待重试...")
                 time.sleep(2)
+                #可能网络错误弹回主页并出现弹窗，先把弹窗点掉
+                closeButtons = find_all_buttons(device, CLOSE_TEMPLATES)
+                if len(closeButtons):
+                    closeButtons.sort(key=lambda p: p[1])
+                    cx, cy = closeButtons[0]
+                    device.shell(f"input tap {cx} {cy}")
+                    print("关闭了一个弹窗，寻找升级页面....")
+                upgradesButtons = find_all_buttons(device, UPGRADES_TEMPLATES)
+                if len(upgradesButtons):
+                    upgradesButtons.sort(key=lambda p: p[1])
+                    cx, cy = (upgradesButtons[0])
+                    device.shell(f"input tap {cx} {cy}")
+                    print(f"点击坐标{cx}, {cy}")
+                    print("进入了升级页面，开始自动升级。。。")
+                else:
+                    print("没有找到升级页面，可能存在弹窗")
+
+
         else:
             print(f"✅ 队列已满 ({QUEUE}/{QUEUE})，等待升级完成...")
             print(f"本次运行已经升级：{Count}次")
