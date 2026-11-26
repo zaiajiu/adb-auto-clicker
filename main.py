@@ -2,7 +2,7 @@ QUEUE = 3
 #排除顶部的叉号按钮
 ROI_AVOID_TOP = (0, 200, 900, 1600)
 #升级页面分所有建筑(0)，基础建筑(1)，资源建筑的升级(2),通过修改变量select进行选择，默认所有建筑
-select = 1
+select = 0
 import cv2
 from ppadb.client import Client as AdbClient
 import time
@@ -10,11 +10,13 @@ import numpy as np
 #.\adb.exe devices
 import subprocess
 
-# 定义你的所有关闭按钮模板
+# 定义所有关闭按钮模板
 CLOSE_TEMPLATES = [
     "./image/closeButtons.png",
     "./image/closeButtons2.png",
     "./image/closeButtons3.png",
+    # "./image/closeButtons4.png",
+    "./image/confirm.png",
 ]
 FREE_TEMPLATES = [
     "./image/freeButtons.png",
@@ -33,6 +35,10 @@ BASIC_TEMPLATES = [
 ]
 RESOURCE_TEMPLATES = [
     "./image/ResourceBuilding.png",
+]
+GAME_TEMPLATES = [
+    "./image/game.png",
+    "./image/game1.png",
 ]
 def run(cmd):
     r = subprocess.run(cmd, capture_output=True, text=True)
@@ -207,8 +213,13 @@ while True:
                     print(f"点击坐标{cx}, {cy}")
                     print("进入了升级页面，开始自动升级。。。")
                 else:
-                    print("没有找到升级页面，可能还存在弹窗。。。")
-
+                    print("没有找到升级页面，尝试启动游戏。。。")
+                    gameButton = find_all_buttons(device,GAME_TEMPLATES)
+                    if len(gameButton):
+                        gameButton.sort(key=lambda p: p[1])
+                        cx, cy = (gameButton[0])
+                        device.shell(f"input tap {cx} {cy}")
+                        print(f"找到游戏并启动：{cx}, {cy}")
 
         else:
             print(f"✅ 队列已满 ({QUEUE}/{QUEUE})，等待升级完成...")
