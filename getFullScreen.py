@@ -19,4 +19,4 @@ screen_bytes = device.screencap()
 with open("fullScreen/fullScreen.png", "wb") as f:
     f.write(screen_bytes)
 
-print("🎉 截屏成功！请去左侧项目栏查看 closeButtons3.png")
+print("🎉 截屏成功！fullScreen/fullScreen.png")
